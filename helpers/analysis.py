@@ -106,9 +106,9 @@ def calcModeleGaussien(data, message=''):
     :return: la moyenne, la matrice de covariance, les valeurs propres et les vecteurs propres de "data"
     """
     # TODO Labo L1.E2.2 Compléter le code avec les fonctions appropriées ici
-    moyenne = np.ones(np.asarray(data).shape[-1]) # pas_la_bonne_moyenne
-    matr_cov = np.identity(np.asarray(data).shape[-1]) # pas la bonne covariance
-    val_propres, vect_propres = [[1, 2], [[1,1],[-1, -1]]] # pas la bonne affaire
+    moyenne = np.mean(data, axis=0)
+    matr_cov = np.cov(data, rowvar = False)
+    val_propres, vect_propres = np.linalg.eig(matr_cov)
     if message:
         printModeleGaussien(moyenne, matr_cov, val_propres, vect_propres, message)
     return moyenne, matr_cov, val_propres, vect_propres
@@ -126,15 +126,30 @@ def creer_hist2D(data, title='', nbinx=15, nbiny=15, view=False):
     y = np.array(data[:, 1])
 
     # TODO L2.E1.1 Faire du pseudocode et implémenter une segmentation en bins...
-    # pas des bins de l'histogramme
-    deltax = (np.max(x) - np.min(x)) / nbinx
-    deltay = (np.max(y) - np.min(y)) / nbiny
-
-    # TODO L3.S2.1: remplacer les valeurs bidons par la bonne logique ici
-    hist, xedges, yedges = np.histogram2d([1, 1], [1, 1], bins=[1, 1]) # toutes ces valeurs sont n'importe quoi
-    # normalise par la somme (somme de densité de prob = 1)
+    ## ici on détermine les plages de valeur pour chaque dimension (min et max de chaque dimensions):
+    min_x = min(data[:, 0])
+    max_x = max(data[:, 0])
+    min_y = min(data[:, 1])
+    max_y = max(data[:, 1])
+    #Par la suite on calcul la largeur de chaque bin pour x et y
+    deltax  = (max_x - min_x) / nbinx
+    deltay  = (max_y - min_y) / nbiny
+    xedges = [min_x]  # Premier bord correspond au minimum de la dimension x
+    yedges = [min_y]  # Premier bord correspond au minimum de la dimension y
+    #pas des bins de l'histogramme
+    for i in range(0,nbinx):
+        xedges.append(min_x + i * deltax)
+    for i in range(0,nbiny):
+        yedges.append(min_y + i * deltay)
+    hist, _, _ = np.histogram2d(x, y, bins=[xedges, yedges])
     histsum = np.sum(hist)
     hist = hist / histsum
+
+    # TODO L3.S2.1: remplacer les valeurs bidons par la bonne logique ici
+    #hist, xedges, yedges = np.histogram2d([1, 1], [1, 1], bins=[1, 1]) # toutes ces valeurs sont n'importe quoi
+    # normalise par la somme (somme de densité de prob = 1)
+    #histsum = np.sum(hist)
+    #hist = hist / histsum
 
     if view:
         fig = plt.figure()
@@ -240,13 +255,12 @@ def project_onto_new_basis(data, basis):
     :param basis: les vecteurs (propres) sur lesquels projeter les données; doivent être déjà normalisés
     :return: les données projetées
     """
+
     dims = np.asarray(data).shape
     assert dims[-1] == len(basis)
     projected = np.zeros(np.asarray(data).shape)
     for i in range(dims[0]):  # dims[0] = n_classes
-        tempdata = data[i]
-        # TODO Labo L1.E2.5 Remplacer l'opération bidon par la bonne projection ici
-        # projected[i] = ??
+        projected[i] = data[i] @ basis
     return projected
 
 
@@ -498,8 +512,8 @@ def viewEllipse(data, ax, scale=1, facecolor='none', edgecolor='red', **kwargs):
     moy, cov, lambdas, vectors = calcModeleGaussien(data)
     # TODO L3.E1.1 Remplacer les valeurs bidons par les bons paramètres à partir des stats ici
     # tous les 1 sont suspects
-    ellipse = Ellipse((1, 1), width=2 * np.sqrt(1) * scale, height=2 * np.sqrt(1) * scale,
-                      angle=-np.degrees(1), facecolor=facecolor,
+    ellipse = Ellipse((moy[0],moy[1]), width = math.sqrt(lambdas[1])*scale, height=math.sqrt(lambdas[0])*scale,
+                      angle=np.arctan2(vectors[0][0], vectors[0][1])*180/np.pi, facecolor=facecolor,
                       edgecolor=edgecolor, linewidth=2, **kwargs)
     return ax.add_patch(ellipse)
 

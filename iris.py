@@ -55,6 +55,7 @@ def main():
     # Attributes are: petal length, petal width, sepal length, sepal width
     S = scipy.io.loadmat('data'+os.sep+'iris.mat')
     data = np.array(S['data'], dtype=np.float32)
+
     target = np.array(S['target'], dtype=np.float32)
 
     # TODO: Analyze the input data
@@ -69,8 +70,16 @@ def main():
 
     # Show the 3D projection of the data
     # TODO L2.E3.1 Observez si différentes combinaisons de dimensions sont discriminantes
-    data3D = data[:, 1:4]
-    an.view3D(data3D, target_decode, 'dims 1 2 3')
+    data3D123 = data[:, [0,1,2]]
+    data3D124 = data[:, [0,1,3]]
+    data3D134 = data[:, [0,2,3]]
+    data3D234 = data[:, [1,2,3]]
+    an.view3D(data3D123, target_decode, 'dims 1 2 3')
+    an.view3D(data3D124, target_decode, 'dims 1 2 4')
+    an.view3D(data3D134, target_decode, 'dims 1 3 4')
+    an.view3D(data3D234, target_decode, 'dims 2 3 4')
+    print("******covariance of data here***********")
+    print(np.cov(data, rowvar = False))
 
     # TODO Problématique Ici on prend un raccourci avec PCA, mais dans la problématique on demande d'utiliser
     # les techniques vues au labo1
@@ -101,44 +110,43 @@ def main():
     # TODO : Apply any relevant transformation to the data
     # TODO L2.E3.1 Conservez les dimensions qui vous semblent appropriées et décorrélées-les au besoin
     # (e.g. filtering, normalization, dimensionality reduction)
-    data, minmax = an.scaleData(data)
+    data3D234, minmax = an.scaleData(data3D234)
 
-    # TODO L2.E3.4
-    training_data = data
-    validation_data = []
-    training_target = target
-    validation_target = []
 
     # Create neural network
+    X_train, X_test, y_train, y_test = ttsplit(data3D234, target, test_size=0.05)
+    X_train, X_val, y_train, y_val = ttsplit(X_train, y_train, test_size=0.2)
+    # TODO L2.E3.4
+    training_data = X_train
+    training_target = y_train
+    target_decode_train = np.argmax(y_train, axis=-1)  # targets are 1hot encoded
+    target_decode_test = np.argmax(y_test, axis=-1)  # targets are 1hot encoded
     # TODO L2.E3.3  Tune the number and size of hidden layers
     model = Sequential()
-    model.add(Dense(units=3, activation='linear',
-                    input_shape=(data.shape[-1],)))
-    model.add(Dense(units=target.shape[-1], activation='linear'))
+    model.add(Dense(units=4, activation='tanh',
+                    input_shape=(X_train.shape[-1],)))
+    model.add(Dense(units=target.shape[-1], activation='softmax'))
     print(model.summary())
-
     # Define training parameters
     # TODO L2.E3.3 Tune the training parameters
-    model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.01), loss='mse')
-
+    model.compile(optimizer=SGD(learning_rate=0.01, momentum= 0.5), loss='categorical_crossentropy', metrics=['accuracy'])
     # Perform training
-    callback_list = []  # TODO Labo: callbacks
+    callback_list = []  # TODO Labo: callbacks # TODO Labo: callbacks // k.callback.earlystopping(patience = 30,verbose =1, restore_best_weights =0), classifier.print_every_epoch(25)
     # TODO L2.E3.3  Tune the training hyperparameters
-    model.fit(training_data, training_target, batch_size=len(data), verbose=0,
-              epochs=10, shuffle=True, callbacks=callback_list)  # TODO Labo: ajouter les arguments pour le validation set
-
+    model.fit(training_data, training_target, batch_size=12, verbose=0,
+              epochs=1000, shuffle=True, callbacks=callback_list,validation_data=(X_val, y_val))  # TODO Labo: ajouter les arguments pour le validation set
     # Save trained model to disk
     model.save('saves'+os.sep+'iris.keras')
-
     an.plot_metrics(model)
-
     # Test model (loading from disk)
     model = load_model('saves'+os.sep+'iris.keras')
-    targetPred = model.predict(data)
-
+    targetPred = model.predict(X_train)
     # Print the number of classification errors from the training data
-    error_indexes = an.calc_erreur_classification(np.argmax(targetPred, axis=-1), target_decode, gen_output=True)
+    error_indexes = an.calc_erreur_classification(np.argmax(targetPred, axis=-1), target_decode_train, gen_output=True)
 
+
+    _,accuracy = model.evaluate(X_test, y_test)
+    print("accuracy:", accuracy)
     plt.show()
 
 if __name__ == "__main__":

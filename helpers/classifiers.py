@@ -105,17 +105,26 @@ class histProbDensity:
     """
     def __init__(self, data2train, title='', view=False):
         _, self.representationDimensions = np.asarray(data2train).shape
-        self.extent = data2train.extent
         # TODO problématique: modifier la modélisation pour fonctionner avec une dimensionalité plus élevée
         self.hist, self.xedges, self.yedges = an.creer_hist2D(data2train, title=title, view=view)
 
     def computeProbability(self, testdata1array):
         testDataNSamples, testDataDimensions = np.asarray(testdata1array).shape
         assert testDataDimensions == self.representationDimensions
-        # TODO JB assert testdata within extent
-        # TODO laboratoire: compléter le pseudocode et implémenter un calcul de probabilité
-        raise NotImplementedError()
-        return  # something to be computed
+        nb_lignes, nb_colonnes = self.hist.shape
+        probabilities = np.zeros((testDataNSamples, 1))
+        for row in range(0,len(testdata1array)):
+            x_bin = np.searchsorted(self.xedges, testdata1array[row][0], side='right') - 1
+            y_bin = np.searchsorted(self.yedges, testdata1array[row][1], side='right') - 1
+
+            if x_bin >= nb_lignes or y_bin >= nb_colonnes:
+                pass
+
+            else:
+                prob_point = self.hist[x_bin, y_bin] / np.sum(self.hist)
+                probabilities[row] += float(prob_point)
+
+        return  probabilities
 
 
 #############################################################################
@@ -160,11 +169,18 @@ class BayesClassifier:
         classProbDensities = []
         # calcule la valeur de la probabilité d'appartenance à chaque classe pour les données à tester
         for i in range(self.n_classes):  # itère sur toutes les classes
-            classProbDensities.append(self.densities[i].computeProbability(testdata1array))
+            classProbDensities.append(self.densities[i].computeProbability(testdata1array) * float(self.apriori[i]))
         # reshape pour que les lignes soient les calculs pour 1 point original, i.e. même disposition que l'array d'entrée
         classProbDensities = np.array(classProbDensities).T
-        # TODO problematique: take apriori and cost into consideration! here for risk computation argmax assumes equal costs and apriori
-        predictions = np.argmax(classProbDensities, axis=1).reshape(testDataNSamples, 1)
+        classProbDensities = np.squeeze(classProbDensities)
+        risques = []
+        for row in classProbDensities:
+            R1 = row[1] * self.costs[0][1] + row[2]* self.costs[0][2]
+            R2 = row[0] * self.costs[1][0] + row[2]* self.costs[1][2]
+            R3 = row[0] * self.costs[2][0] + row[1]* self.costs[2][1]
+            risques.append([R1,R2,R3])
+        # TODO problematique: take apriori and cost finto consideration! here for risk computation argmax assumes equal costs and apriori
+        predictions = np.argmin(risques, axis=1).reshape(testDataNSamples, 1)
         if np.asarray(expected_labels1array).any():
             errors_indexes = an.calc_erreur_classification(expected_labels1array, predictions, gen_output)
         else:
@@ -174,7 +190,7 @@ class BayesClassifier:
 
 class BayesClassify_APP2:
     def __init__(self, data2train, data2test=None, ndonnees_random=5000,
-                 probabilitydensityType=GaussianProbDensity, apriori=None, costs=None,
+                 probabilitydensityType=histProbDensity, apriori=None, costs=None,
                  experiment_title='Bayes Classifier', gen_output=False, view=False):
         """
         Wrapper avec tous les nice to have pour un classificateur bayésien
@@ -207,7 +223,7 @@ class PPVClassifier:
         # TODO L2.E3.1 Compléter la logique pour utiliser la librairie ici
         # le 1 est suspect et il manque des arguments
         self.n_classes, _, self.representationDimensions = np.asarray(data2train.dataLists).shape
-        self.kNN = KNN(1)  # minkowski correspond à distance euclidienne lorsque le paramètre p = 2
+        self.kNN = KNN(n_neighbors)  # minkowski correspond à distance euclidienne lorsque le paramètre p = 2
         # Exécute un clustering pour calculer les représentants de classe si demandés
         if useKmean:
             assert n_represantants >= n_neighbors
@@ -279,7 +295,7 @@ class KMeanAlgo:
         for i in range(self.n_classes):  # itère sur l'ensemble des classes
             # TODO L2.E3.3 compléter la logique pour utiliser la librairie ici
             # encore une fois le 1 est suspect
-            self.kmeans_on_each_class.append(KM(1, n_init='auto'))
+            self.kmeans_on_each_class.append(KM(n_representants, n_init='auto'))
             self.kmeans_on_each_class[i].fit(np.array(data2train.dataLists[i]))
             self.cluster_centers.append(self.kmeans_on_each_class[i].cluster_centers_)
             self.cluster_labels[range(n_representants * i, n_representants * (i + 1))] = \
@@ -447,9 +463,8 @@ class NNClassify_APP2:
     def __init__(self, data2train, data2test, n_layers, n_neurons, innerActivation='tanh', outputActivation='softmax',
                  optimizer=Adam(), loss='binary_crossentropy', metrics=None,
                  callback_list=None, n_epochs=1000, savename='', ndonnees_random=5000,
-                 experiment_title='NN Classifier', gen_output=False, view=False):
-
-        print('\n\n=========================\nNouveau classificateur: '+experiment_title)
+                 experiment_title='NN Classifier', gen_output=True, view=True):
+        print('\n\n=========================\nNouveau classificateur: ' + experiment_title)
         self.classifier = NNClassifier()
         self.classifier.preprocess_training_data(dataLists=data2train.dataLists, labelsLists=data2train.labelsLists)
         self.classifier.init_model(n_neurons, n_layers, innerActivation=innerActivation,
@@ -467,10 +482,11 @@ class NNClassify_APP2:
                                            test2errors=self.error_indexes,
                                            colors_original=data2train.labels1array, colors_test1=self.predictRandom,
                                            colors_test2=self.predictTest / an.error_class / 0.75,
-                                           experiment_title=experiment_title+f'NN {n_layers} layer(s) caché(s), {n_neurons} neurones par couche',
+                                           experiment_title=experiment_title + f'NN {n_layers} layer(s) caché(s), {n_neurons} neurones par couche',
                                            title_original='Données originales',
                                            title_test1=f'Données aléatoires classées par le RNA',
-                                           title_test2='Prédiction du RNA, données originales', extent=data2train.extent)
+                                           title_test2='Prédiction du RNA, données originales',
+                                           extent=data2train.extent)
 
 
 def get_gaussian_borders(dataLists):
