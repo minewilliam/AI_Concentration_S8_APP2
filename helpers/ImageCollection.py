@@ -953,23 +953,28 @@ class ImageCollection:
 
         raise NotImplementedError()
 
+    def load_images(self, indexes):
+        # Pour qu'on puisse traiter 1 seule image
+        if type(indexes) == int:
+            indexes = [indexes]
+        im = []
+        for i in range(len(indexes)):
+            if self.all_images_loaded:
+                im.append(self.images[i])
+            else:
+                im.append(skiio.imread(self.image_folder + os.sep + self.image_list[indexes[i]]))
+        return im
+
     def images_display(self, indexes):
         """
         fonction pour afficher les images correspondant aux indices
         indexes: indices de la liste d'image (int ou list of int)
         """
-        # Pour qu'on puisse traiter 1 seule image
-        if type(indexes) == int:
-            indexes = [indexes]
-
+        im = self.load_images(indexes)
         fig2 = plt.figure()
-        ax2 = fig2.subplots(len(indexes), 1)
-        for i in range(len(indexes)):
-            if self.all_images_loaded:
-                im = self.images[i]
-            else:
-                im = skiio.imread(self.image_folder + os.sep + self.image_list[indexes[i]])
-            ax2[i].imshow(im)
+        ax2 = fig2.subplots(len(im), 1)
+        for i, v in enumerate(im):
+            ax2[i].imshow(v)
 
     def view_histogrammes(self, indexes):
         """
