@@ -39,6 +39,7 @@ import random
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split as ttsplit
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class Extent:
@@ -52,7 +53,7 @@ class Extent:
         get_array: retourne les min max formattés en array
         get_corners: retourne les coordonnées des points aux coins d'un range couvert par les min max
     """
-    def __init__(self, xmin=0, xmax=10, ymin=0, ymax=10, ptList=None):
+    def __init__(self, xmin=0, xmax=10, ymin=0, ymax=10,zmin=0, zmax=10, ptList=None):
         """
         Constructeur
         2 options:
@@ -64,11 +65,15 @@ class Extent:
             self.xmax = np.ceil(np.max(ptList[:,0]))+1
             self.ymin = np.floor(np.min(ptList[:,1]))-1
             self.ymax = np.ceil(np.max(ptList[:,1]))+1
+            self.zmin = np.ceil(np.max(ptList[:,2]))-1
+            self.zmax = np.ceil(np.max(ptList[:,2]))+1
         else:
             self.xmin = xmin
             self.xmax = xmax
             self.ymin = ymin
             self.ymax = ymax
+            self.zmin = zmin
+            self.zmax = zmax
 
     def get_array(self):
         """
@@ -194,7 +199,8 @@ def genDonneesTest(ndonnees, extent):
     # génération de n données aléatoires 2D sur une plage couverte par extent
     # TODO JB: generalize to N-D
     return np.transpose(np.array([(extent.xmax - extent.xmin) * np.random.random(ndonnees) + extent.xmin,
-                                         (extent.ymax - extent.ymin) * np.random.random(ndonnees) + extent.ymin]))
+                                         (extent.ymax - extent.ymin) * np.random.random(ndonnees) + extent.ymin,
+                                 (extent.zmax - extent.zmin) * np.random.random(ndonnees) + extent.zmin]))
 
 
 def plot_metrics(NNmodel):
@@ -469,30 +475,46 @@ def view_classification_results(experiment_title, extent, original_data, colors_
     :return:
     """
     cmap = cm.get_cmap('seismic')
+
+    # Create the figure
+    fig = plt.figure()
+
+    # Check if test2data is present
     if np.asarray(test2data).any():
-        fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
+        # Create 3 subplots
+        ax1 = fig.add_subplot(3, 1, 1, projection='3d')
+        ax2 = fig.add_subplot(3, 1, 2, projection='3d')
+        ax3 = fig.add_subplot(3, 1, 3, projection='3d')
+
         if np.asarray(test2errors).any():
             colors_test2[test2errors] = error_class
-        ax3.scatter(test2data[:, 0], test2data[:, 1], s=5, c=cmap(colors_test2))
+
+        ax3.scatter(test2data[:, 0], test2data[:, 1], test2data[:, 2], s=5, c=cmap(colors_test2))
         ax3.set_title(title_test2)
-        ax3.set_xlim([extent.xmin, extent.xmax])
-        ax3.set_ylim([extent.ymin, extent.ymax])
-        ax3.axes.set_aspect('equal')
+        ax3.set_box_aspect([1, 1, 1])  # Sets 3D aspect ratio to be equal
     else:
-        fig, (ax1, ax2) = plt.subplots(2, 1)
+        # Create 2 subplots
+        ax1 = fig.add_subplot(2, 1, 1, projection='3d')
+        ax2 = fig.add_subplot(2, 1, 2, projection='3d')
+        ax3 = None  # Define ax3 as None in the else block
+
     fig.suptitle(experiment_title)
-    ax1.scatter(original_data[:, 0], original_data[:, 1], s=5, c=colors_original, cmap='viridis')
+
+    # For ax1 and ax2, scatter in 3D if needed
+    ax1.scatter(original_data[:, 0], original_data[:, 1], original_data[:, 2], s=5, c=colors_original, cmap='viridis')
+
     if np.asarray(test1errors).any():
         colors_test1[test1errors] = error_class
-    ax2.scatter(test1data[:, 0], test1data[:, 1], s=5, c=colors_test1, cmap='viridis')
+
+    ax2.scatter(test1data[:, 0], test1data[:, 1], test1data[:, 2], s=5, c=colors_test1, cmap='viridis')
+
     ax1.set_title(title_original)
     ax2.set_title(title_test1)
-    ax1.set_xlim([extent.xmin, extent.xmax])
-    ax1.set_ylim([extent.ymin, extent.ymax])
-    ax2.set_xlim([extent.xmin, extent.xmax])
-    ax2.set_ylim([extent.ymin, extent.ymax])
-    ax1.axes.set_aspect('equal')
-    ax2.axes.set_aspect('equal')
+
+    # Set limits and aspect ratios for all 3D plots, including ax3
+    for ax in [ax1, ax2, ax3]:
+        if ax is not None:
+            ax.set_box_aspect([1, 1, 1])  # Sets 3D aspect ratio to be equal
 
 
 def viewEllipse(data, ax, scale=1, facecolor='none', edgecolor='red', **kwargs):

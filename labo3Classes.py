@@ -48,7 +48,7 @@ def labo_APP2():
         data3classesDecorr.getStats(gen_print=True)
         data3classesDecorr.getBorders(view=True)
 
-    if False: # TODO Labo L2.E4
+    if True: # TODO Labo L2.E4
         # Exemple de RN
         n_neurons = 8
         n_layers = 3
@@ -79,14 +79,13 @@ def labo_APP2():
 
     if True:  # TODO L3.E3
         # Exemple de classification bayésienne
-        apriori = [0, 1/2, 1/2]
+        apriori = [1/3, 1/3, 1/3]
         cost = [[0, 1, 1], [1, 0, 1], [1, 1, 0]]
         # Bayes gaussien les apriori et coûts ne sont pas considérés pour l'instant
         bg1 = classifiers.BayesClassify_APP2(data2train=data3classesDecorr, data2test=data3classesDecorr,
                                              apriori=apriori, costs=cost,
                                              experiment_title='probabilités gaussiennes',
                                              gen_output=True, view=True)
-    data3classesDecorr
     plt.show()
 
 

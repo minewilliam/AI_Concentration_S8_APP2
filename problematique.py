@@ -5,63 +5,76 @@ Problématique APP2 Module IA S8
 
 import matplotlib.pyplot as plt
 
-from helpers.ImageCollection import ImageCollection
+from helpers.ClassificationData import ClassificationData
+import helpers.analysis as an
+import helpers.classifiers as classifiers
+
+from keras.optimizers import Adam
+import numpy as np
+import keras as K
 
 
 #######################################
 def problematique_APP2():
-    images = ImageCollection()
-    # Génère une liste de N images, les visualise et affiche leur histo de couleur
-    # TODO: voir L1.E4 et problématique
+    data3classes = ClassificationData()
+    data3classesTest = ClassificationData(Test= True)
+
+    if False:
+        print('\n\n=========================\nDonnées originales\n')
+        data3classes.getStats(gen_print=True)
+        data3classes.getBorders(view=True)
+
+    if False:
+        # Décorrélation
+        data3classesDecorr = ClassificationData(
+            an.project_onto_new_basis(data3classes.dataLists, data3classes.vectpr[0]))
+        print('\n\n=========================\nDonnées décorrélées\n')
+        data3classesDecorr.getStats(gen_print=True)
+        data3classesDecorr.getBorders(view=True)
+
     if True:
-        # TODO L1.E4.3 à L1.E4.5
-        # Analyser quelques images pour développer des pistes pour le choix de la représentation
-        N = 6
-        im_list = images.get_samples(N)
-        #num 2.ici les images RGB ne sont pas vraiment stocker dans la memoire du programme elle sont plus-tôt référencer
-        #dans un label list qu'on peut aller chercher la référence et l'afficher à l'aide de images_display
-        #La représentation intermédiaire qui dois se faire dans images_display est une matrice de dimensions nXm des pixels
-        #ou chaque pixel est représenter par 3 valeur RGB
-        print(im_list)
-        #images.images_display(im_list)
-        #images.view_histogrammes(im_list)
-        #images.generateRGBHistograms()
-        #images.colorAvgAnalysis()
-        #disc1 = images.histAvgRegionAnalysisLAB()
-        disc1 = images.histAvgRegionGenLAB()
-        #disc2 = images.histAvgRegionAnalysisRGB()
-        disc2 = images.histAvgRegionGenRGB()
-        #disc3 = images.histAvgRegionGenHSV()
-        representationOfImages = []
-        for i in range(0,len(images.image_list)):
-            representationOfImages.append([disc2[i][2],disc1[i][1]],)
+        # Exemple de RN
+        n_neurons = 8
+        n_layers = 3
 
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        sizes = [50] * len(representationOfImages)
-        colors = ['red' if i < 328 else 'blue' if 328 <= i < 688 else 'green' for i in
-                  range(len(representationOfImages))]
+        nn1 = classifiers.NNClassify_APP2(data2train=data3classes, data2test=data3classesTest,
+                                          n_layers=n_layers, n_neurons=n_neurons, innerActivation='tanh',
+                                          outputActivation='softmax', optimizer=SGD(learning_rate=0.1),
+                                          loss='categorical_crossentropy',
+                                          metrics=['accuracy'],
+                                          callback_list=[
+                                              K.callbacks.EarlyStopping(patience=50, verbose=1, restore_best_weights=1),
+                                              classifiers.print_every_N_epochs(25)],
+                                          # TODO à compléter L2.E4
+                                          experiment_title='NN Simple',
+                                          n_epochs=1000, savename='3classes',
+                                          ndonnees_random=5000, gen_output=True, view=True)
 
-        # Extract coordinates for each axis
-        x_coords = [point[0] for point in representationOfImages]
-        y_coords = [point[1] for point in representationOfImages]
+    if False:  # TODO L3.E2
+        ## Exemples de ppv avec ou sans k-moy
+        ## 1-PPV avec comme représentants de classes l'ensemble des points déjà classés
+        ppv5 = classifiers.PPVClassify_APP2(data2train=data3classes, data2test=data3classesTest, n_neighbors=1,
+                                            experiment_title='5-PPV avec données orig comme représentants',
+                                            gen_output=True, view=True)
+        # 1-mean sur chacune des classes
+        # suivi d'un 1-PPV avec ces nouveaux représentants de classes
 
-        # Create a 3D scatter plot with specified point sizes and colors
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
 
-        # Plot all points with their corresponding size and color
-        ax.scatter(x_coords, y_coords, c=colors, s=sizes)
+        ppv1km1 = classifiers.PPVClassify_APP2(data2train=data3classes, data2test=data3classesTest,
+                                               n_neighbors=1,
+                                               experiment_title='1-PPV sur le 1-moy',
+                                               useKmean=True, n_representants=1,
+                                               gen_output=True, view=True)
 
-        # Set labels for each axis
-        ax.set_xlabel('X Axis')
-        ax.set_ylabel('Y Axis')
-
-        # Display the plot
-        plt.show()
-
-    # TODO L1.E4.6 à L1.E4.8
-    #images.generateRepresentation()
+    if False:  # TODO L3.E3
+        # Exemple de classification bayésienne
+        apriori = [1 / 3, 1 / 3, 1 / 3]
+        cost = [[0, 1, 1], [1, 0, 1], [1, 1, 0]]
+        # Bayes gaussien les apriori et coûts ne sont pas considérés pour l'instant
+        bg1 = classifiers.BayesClassify_APP2(data2train=data3classes, data2test=data3classesTest,
+                                             apriori=apriori, costs=cost,
+                                             experiment_title='probabilités gaussiennes',
+                                             gen_output=True, view=True)
     plt.show()
 
 

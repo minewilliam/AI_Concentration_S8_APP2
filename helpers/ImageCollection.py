@@ -38,7 +38,7 @@ class ImageCollection:
 
     def __init__(self, load_all=False):
         # liste de toutes les images
-        self.image_folder = r"data" + os.sep + "baseDeDonneesImages"
+        self.image_folder = r"data" + os.sep + "baseDeDonneesImagesTest"
         self._path = glob.glob(self.image_folder + os.sep + r"*.jpg")
         image_list = os.listdir(self.image_folder)
         # Filtrer pour juste garder les images
@@ -506,22 +506,22 @@ class ImageCollection:
             #histvaluesLAB = self.generateHistogram(imageLabhist)
             histvaluesHSV = self.generateHistogram(imageHSVhist)
 
-            std_r_low = (np.var(histvaluesHSV[0][85:170]))
-            std_g_low = (np.var(histvaluesHSV[1][85:170]))
-            std_b_low = (np.var(histvaluesHSV[2][85:170]))
+            std_r_low = (np.mean(histvaluesHSV[0][85:170]))
+            std_g_low = (np.mean(histvaluesHSV[1][85:170]))
+            std_b_low = (np.mean(histvaluesHSV[2][85:170]))
 
             if "coast" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityCoast.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityCoast.append(std_g_low)
 
             if "forest" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityForest.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityForest.append(std_g_low)
 
             if "street" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityStreet.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityStreet.append(std_g_low)
             i = i + 1
             print(i)
 
-        return MeanhistvaluesLABRegionLowIntensityCoast + MeanhistvaluesLABRegionLowIntensityForest + MeanhistvaluesLABRegionLowIntensityStreet
+        return MeanhistvaluesLABRegionLowIntensityCoast, MeanhistvaluesLABRegionLowIntensityForest, MeanhistvaluesLABRegionLowIntensityStreet
 
     def histAvgRegionGenLAB(self):
         MeanhistvaluesLABRegionLowIntensityCoast = []
@@ -553,26 +553,23 @@ class ImageCollection:
             histvaluesLAB = self.generateHistogram(imageLabhist)
             #histvaluesHSV = self.generateHistogram(imageHSVhist)
 
-            std_r_low = (np.mean(histvaluesLAB[0][0:85]))
-            std_g_low = (np.mean(histvaluesLAB[1][0:85]))
-            std_b_low = (np.mean(histvaluesLAB[2][0:85]))
 
 
-            var_r_low = (np.mean(histvaluesLAB[0][170:255]))
-            var_g_low = (np.mean(histvaluesLAB[1][170:255]))
-            var_b_low = (np.mean(histvaluesLAB[2][170:255]))
+            std_r_low = (np.var(histvaluesLAB[0][0:85]))
+            std_g_low = (np.var(histvaluesLAB[1][0:85]))
+            std_b_low = (np.var(histvaluesLAB[2][0:85]))
             if "coast" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityCoast.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityCoast.append(std_b_low)
 
             if "forest" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityForest.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityForest.append(std_b_low)
 
             if "street" in self.image_list[image_counter]:
-                MeanhistvaluesLABRegionLowIntensityStreet.append([std_r_low, std_g_low, std_b_low])
+                MeanhistvaluesLABRegionLowIntensityStreet.append(std_b_low)
             i = i + 1
             print(i)
 
-        return MeanhistvaluesLABRegionLowIntensityCoast + MeanhistvaluesLABRegionLowIntensityForest + MeanhistvaluesLABRegionLowIntensityStreet
+        return MeanhistvaluesLABRegionLowIntensityCoast, MeanhistvaluesLABRegionLowIntensityForest , MeanhistvaluesLABRegionLowIntensityStreet
 
     def histAvgRegionGenRGB(self):
 

@@ -190,7 +190,7 @@ class BayesClassifier:
 
 class BayesClassify_APP2:
     def __init__(self, data2train, data2test=None, ndonnees_random=5000,
-                 probabilitydensityType=histProbDensity, apriori=None, costs=None,
+                 probabilitydensityType=GaussianProbDensity, apriori=None, costs=None,
                  experiment_title='Bayes Classifier', gen_output=False, view=False):
         """
         Wrapper avec tous les nice to have pour un classificateur bayésien
@@ -261,7 +261,7 @@ class PPVClassify_APP2:
         self.predictRandom, _ = self.classifier.predict(self.donneesTestRandom)  # classifie les données de test
         if np.asarray(data2test).any():   # classifie les données de test2 si présentes
             self.predictTest, self.error_indexes = \
-                self.classifier.predict(data2test.data1array, data2test.labels1array, gen_output=gen_output)
+                self.classifier.predict(data2test.data1array, data2test.labels1array, gen_output=True)
         else:
             self.predictTest = []
             self.error_indexes = []

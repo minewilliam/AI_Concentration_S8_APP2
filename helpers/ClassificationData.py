@@ -29,15 +29,20 @@ import helpers.classifiers as classifiers
 
 class ClassificationData:
 
-    def __init__(self, existingData=None):
+    def __init__(self, existingData=None, Test = False):
         if np.asarray(existingData).any():
             self.dataLists = existingData  # TODO JB assert  le format fourni
         else:
             self.dataLists = []
             # Import data from text files in subdir
-            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes'+os.sep+'C1.txt'))
-            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes'+os.sep+'C2.txt'))
-            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes'+os.sep+'C3.txt'))
+            if Test:
+                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C1_Test.txt'))
+                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C2_Test.txt'))
+                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C3_Test.txt'))
+            else:
+                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C1.txt'))
+                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C2.txt'))
+                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C3.txt'))
 
         # reorganisation en 1 seul vecteur pour certains entraînements et les predicts
         self.dataLists = np.array(self.dataLists)
