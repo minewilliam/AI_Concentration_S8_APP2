@@ -25,7 +25,7 @@ import numpy as np
 import os
 import helpers.analysis as an
 import helpers.classifiers as classifiers
-
+from sklearn.model_selection import train_test_split as ttsplit
 
 class ClassificationData:
 
@@ -35,15 +35,29 @@ class ClassificationData:
         else:
             self.dataLists = []
             # Import data from text files in subdir
-            if Test:
-                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C1_Test.txt'))
-                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C2_Test.txt'))
-                self.dataLists.append(np.loadtxt('data' + os.sep + 'data_3classes_app' + os.sep + 'C3_Test.txt'))
-            else:
-                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C1.txt'))
-                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C2.txt'))
-                self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C3.txt'))
+            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C1.txt'))
+            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C2.txt'))
+            self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C3.txt'))
 
+        #instanciate the shape of the data lists for validation and tests
+        self.dataListValidation = self.dataLists
+        self.dataListsTest = self.dataLists
+
+        #defines the labels to split for the first class
+        C1 = [0]*len(self.dataLists[0])
+        C2 = [1]*len(self.dataLists[1])
+        C3 = [2]*len(self.dataLists[2])
+
+        X_train, self.dataListValidation[0], y_train, y_test = ttsplit(self.dataLists[0], C1, test_size=0.05)
+        self.dataLists[0], self.dataListsTest[0], y_train, y_val = ttsplit(X_train, y_train, test_size=0.2)
+
+        X_train, self.dataListValidation[1], y_train, y_test = ttsplit(self.dataLists[1], C2, test_size=0.05)
+        self.dataLists[1], self.dataListsTest[1], y_train, y_val = ttsplit(X_train, y_train, test_size=0.2)
+
+        X_train, self.dataListValidation[2], y_train, y_test = ttsplit(self.dataLists[2], C3, test_size=0.05)
+        self.dataLists[2], self.dataListsTest[2], y_train, y_val = ttsplit(X_train, y_train, test_size=0.2)
+
+        # Training
         # reorganisation en 1 seul vecteur pour certains entraînements et les predicts
         self.dataLists = np.array(self.dataLists)
         self._x, self._y, self._z = self.dataLists.shape
@@ -60,8 +74,46 @@ class ClassificationData:
             self.labels1array[range(i * len(self.dataLists[i]), (i + 1) * len(self.dataLists[i]))] = i
             self.labelsLists.append(self.labels1array[range(i * len(self.dataLists[i]), (i + 1) * len(self.dataLists[i]))])
 
+
+        # Validation
+        # reorganisation en 1 seul vecteur pour certains entraînements et les predicts
+        self.dataListValidation = np.array(self.dataListValidation)
+        self._xVal, self._yVal, self._zVal = self.dataListValidation.shape
+        # Chaque ligne de data contient 1 point en 2D
+        # Les points des 3 classes sont mis à la suite en 1 seul long array
+        self.data1arrayValidation = self.dataListValidation.reshape(self._xVal * self._yVal, self._zVal)
+        self.ndataValidation = len(self.data1arrayValidation)
+
+        # assignation des classes d'origine 0 à 2 pour C1 à C3 respectivement
+        self.labels1arrayValidation = np.zeros([self.ndataValidation, 1])
+        self.labelsListsValidation = []
+        self.labelsListsValidation.append(self.labels1arrayValidation[range(len(self.dataListValidation[0]))])
+        for i in range(1,self._x):
+            self.labels1arrayValidation[range(i * len(self.dataListValidation[i]), (i + 1) * len(self.dataListValidation[i]))] = i
+            self.labelsListsValidation.append(self.labels1arrayValidation[range(i * len(self.dataListValidation[i]), (i + 1) * len(self.dataListValidation[i]))])
+
+
+        # Test
+        # reorganisation en 1 seul vecteur pour certains entraînements et les predicts
+        self.dataListsTest = np.array(self.dataListsTest)
+        self._xTest, self._yTest, self._zTest = self.dataListsTest.shape
+        # Chaque ligne de data contient 1 point en 2D
+        # Les points des 3 classes sont mis à la suite en 1 seul long array
+        self.data1arrayTest = self.dataListsTest.reshape(self._xTest * self._yTest, self._zTest)
+        self.ndataTest = len(self.data1arrayTest)
+
+        # assignation des classes d'origine 0 à 2 pour C1 à C3 respectivement
+        self.label1arrayTest = np.zeros([self.ndataTest, 1])
+        self.labelsListsTest = []
+        self.labelsListsTest.append(self.label1arrayTest[range(len(self.dataListsTest[0]))])
+        for i in range(1,self._x):
+            self.label1arrayTest[range(i * len(self.dataListsTest[i]), (i + 1) * len(self.dataListsTest[i]))] = i
+            self.labelsListsTest.append(self.label1arrayTest[range(i * len(self.dataListsTest[i]), (i + 1) * len(self.dataListsTest[i]))])
+
         # Min et max des données
         self.extent = an.Extent(ptList=self.data1array)
+        self.extentVal = an.Extent(ptList=self.data1arrayValidation)
+        self.extentTest = an.Extent(ptList=self.data1arrayTest)
 
         self.m = []
         self.cov = []

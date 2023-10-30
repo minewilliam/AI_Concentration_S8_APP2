@@ -114,12 +114,12 @@ class histProbDensity:
         nb_lignes, nb_colonnes = self.hist.shape
         probabilities = np.zeros((testDataNSamples, 1))
         for row in range(0,len(testdata1array)):
-            x_bin = np.searchsorted(self.xedges, testdata1array[row][0], side='right') - 1
-            y_bin = np.searchsorted(self.yedges, testdata1array[row][1], side='right') - 1
+            x_bin = np.searchsorted(self.xedges, testdata1array[row][0], side='right')-1
+            y_bin = np.searchsorted(self.yedges, testdata1array[row][1], side='right')-1
 
-            if x_bin >= nb_lignes or y_bin >= nb_colonnes:
-                pass
-
+            if x_bin == -1 or x_bin == 59 or y_bin ==-1 or y_bin == 59:
+                prob_point = 0
+                probabilities[row] += float(prob_point)
             else:
                 prob_point = self.hist[x_bin, y_bin] / np.sum(self.hist)
                 probabilities[row] += float(prob_point)
@@ -190,7 +190,7 @@ class BayesClassifier:
 
 class BayesClassify_APP2:
     def __init__(self, data2train, data2test=None, ndonnees_random=5000,
-                 probabilitydensityType=GaussianProbDensity, apriori=None, costs=None,
+                 probabilitydensityType=histProbDensity, apriori=None, costs=None,
                  experiment_title='Bayes Classifier', gen_output=False, view=False):
         """
         Wrapper avec tous les nice to have pour un classificateur bayésien
@@ -201,13 +201,13 @@ class BayesClassify_APP2:
         self.predictRandom, _ = self.classifier.predict(self.donneesTestRandom)  # classifie les données de test1
         if np.asarray(data2test).any():   # classifie les données de test2 si présentes
             self.predictTest, self.error_indexes = \
-                self.classifier.predict(data2test.data1array, data2test.labels1array, gen_output=gen_output)
+                self.classifier.predict(data2test.data1arrayTest, data2test.label1arrayTest, gen_output=gen_output)
         else:
             self.predictTest = []
             self.error_indexes = []
         if view:
             an.view_classification_results(original_data=data2train.data1array, test1data=self.donneesTestRandom,
-                                       test2data=data2test.data1array, test2errors=self.error_indexes,
+                                       test2data=data2test.data1arrayTest, test2errors=self.error_indexes,
                                        colors_original=data2train.labels1array, colors_test1=self.predictRandom,
                                        colors_test2=self.predictTest / an.error_class / 0.75,
                                        experiment_title=f'Classification de Bayes, {experiment_title}',
@@ -261,13 +261,13 @@ class PPVClassify_APP2:
         self.predictRandom, _ = self.classifier.predict(self.donneesTestRandom)  # classifie les données de test
         if np.asarray(data2test).any():   # classifie les données de test2 si présentes
             self.predictTest, self.error_indexes = \
-                self.classifier.predict(data2test.data1array, data2test.labels1array, gen_output=True)
+                self.classifier.predict(data2test.data1arrayTest, data2test.label1arrayTest, gen_output=True)
         else:
             self.predictTest = []
             self.error_indexes = []
         if view:
             an.view_classification_results(original_data=data2train.data1array, test1data=self.donneesTestRandom,
-                                       test2data=data2test.data1array
+                                       test2data=data2test.data1arrayTest
                                             if np.asarray(data2test).any() else None,
                                        test2errors=self.error_indexes,
                                        colors_original=data2train.labels1array, colors_test1=self.predictRandom,
@@ -409,7 +409,7 @@ class NNClassifier:
         assert NNClassifier.NNstate.architecture in self.state
         if batch_size is None:
             batch_size = len(self.traindata1array)
-        self.NNmodel.fit(self.traindata1array, self.trainlabels1array, batch_size=batch_size, verbose=0,
+        self.NNmodel.fit(self.traindata1array, self.trainlabels1array, batch_size=batch_size, verbose=1,
                     epochs=n_epochs, shuffle=True, callbacks=callback_list,
                     validation_data=(self.validdata1array, self.validlabels1array))
 
@@ -473,12 +473,12 @@ class NNClassify_APP2:
         self.classifier.train_model(n_epochs, callback_list=callback_list, savename=savename, view=view)
         self.donneesTestRandom = an.genDonneesTest(ndonnees_random, data2train.extent)
         self.predictRandom, _ = self.classifier.predict(testdata1array=self.donneesTestRandom)
-        self.predictTest, self.error_indexes = self.classifier.predict(testdata1array=data2test.data1array,
-                                                                       expected_labels1array=data2test.labels1array,
+        self.predictTest, self.error_indexes = self.classifier.predict(testdata1array=data2test.data1arrayTest,
+                                                                       expected_labels1array=data2test.label1arrayTest,
                                                                        gen_output=gen_output)
         if view:
             an.view_classification_results(original_data=data2train.data1array, test1data=self.donneesTestRandom,
-                                           test2data=data2test.data1array,
+                                           test2data=data2test.data1arrayTest,
                                            test2errors=self.error_indexes,
                                            colors_original=data2train.labels1array, colors_test1=self.predictRandom,
                                            colors_test2=self.predictTest / an.error_class / 0.75,

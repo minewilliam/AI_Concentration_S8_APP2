@@ -306,7 +306,7 @@ if __name__ == '__main__':
         print(StreetMeanHigh)
     # creates .txt files that will be use by the ClassificationDataObject
     if True:
-        images_indexes = [i for i in range(126)]
+        images_indexes = [i for i in range(980)]
         images = image_collection.load_images(images_indexes)
         sumBCoast = []
         sumBForest = []
@@ -381,6 +381,24 @@ if __name__ == '__main__':
         # Plot the third set of data (x3, y3) with a green line
         ax.scatter(PixelCountStreetHigh, sumBStreet, thirdDimStreet, label='Street', color='green')
 
+        dataCorrelated = np.array(np.zeros((980,3)))
+        for i in range(0,len(PixelCountCoastHigh)):
+            dataCorrelated[i][0] = PixelCountCoastHigh[i]
+            dataCorrelated[i][1] = sumBCoast[i]
+            dataCorrelated[i][2] = thirdDimCoast[i]
+        for i in range(len(PixelCountCoastHigh),len(PixelCountCoastHigh) + len(PixelCountForestHigh)):
+            dataCorrelated[i][0] = PixelCountForestHigh[i-len(PixelCountCoastHigh)]
+            dataCorrelated[i][1] = sumBForest[i-len(PixelCountCoastHigh)]
+            dataCorrelated[i][2] = thirdDimForest[i-len(PixelCountCoastHigh)]
+        for i in range(len(PixelCountCoastHigh) + len(PixelCountForestHigh),len(PixelCountCoastHigh) + len(PixelCountForestHigh) + len(PixelCountStreetHigh)):
+            dataCorrelated[i][0] = PixelCountStreetHigh[i-(len(PixelCountCoastHigh)+len(PixelCountCoastHigh))]
+            dataCorrelated[i][1] = sumBStreet[i-(len(PixelCountCoastHigh)+len(PixelCountCoastHigh))]
+            dataCorrelated[i][2] = thirdDimStreet[i-(len(PixelCountCoastHigh)+len(PixelCountCoastHigh))]
+
+        mat_cov = np.cov(dataCorrelated, rowvar= False)
+        eig_vals, eig_vectors = np.linalg.eig(mat_cov)
+
+        dataUnCorrelated = dataCorrelated @ eig_vectors
         # Add labels and legend
 
         ax.set_xlabel('X Axis')
@@ -390,66 +408,27 @@ if __name__ == '__main__':
         # Show the plot
         plt.show()
 
-
-        labels = np.zeros(len(PixelCountCoastHigh))
-        X_train1, X_test1, y_train1, y_test1 = train_test_split(PixelCountCoastHigh, labels, test_size=0.3, random_state=42)
-        X_train2, X_test2, y_train2, y_test2 = train_test_split(sumBForest, labels, test_size=0.3, random_state=42)
-        X_train3, X_test3, y_train3, y_test3 = train_test_split(thirdDimForest, labels, test_size=0.3, random_state=42)
-
         file_name = 'data/data_3classes_app/C1.txt'
         # Ouvrir le fichier en mode écriture
         with open(file_name, 'w') as file:
             # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_train1, X_train2, X_train3):
+            for a, b, c in zip(dataUnCorrelated[0:len(PixelCountCoastHigh),0], dataUnCorrelated[0:len(PixelCountCoastHigh),1], dataUnCorrelated[0:len(PixelCountCoastHigh),2]):
                 # Écrire les éléments avec une séparation de trois espaces entre eux
                 file.write(f"{a}   {b}   {c}\n")
 
-        file_name = 'data/data_3classes_app/C1_Test.txt'
-        # Ouvrir le fichier en mode écriture
-        with open(file_name, 'w') as file:
-            # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_test1, X_test2, X_test3):
-                # Écrire les éléments avec une séparation de trois espaces entre eux
-                file.write(f"{a}   {b}   {c}\n")
-
-        labels = np.zeros(len(PixelCountForestHigh))
-        X_train1, X_test1, y_train1, y_test1 = train_test_split(PixelCountForestHigh, labels, test_size=0.3, random_state=42)
-        X_train2, X_test2, y_train2, y_test2 = train_test_split(sumBForest, labels, test_size=0.3, random_state=42)
-        X_train3, X_test3, y_train3, y_test3 = train_test_split(thirdDimForest, labels, test_size=0.3, random_state=42)
         file_name = 'data/data_3classes_app/C2.txt'
 
         with open(file_name, 'w') as file:
             # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_train1, X_train2, X_train3):
+            for a, b, c in zip(dataUnCorrelated[len(PixelCountCoastHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh),0], dataUnCorrelated[len(PixelCountCoastHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh),1], dataUnCorrelated[len(PixelCountCoastHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh),2]):
                 # Écrire les éléments avec une séparation de trois espaces entre eux
                 file.write(f"{a}   {b}   {c}\n")
 
-        file_name = 'data/data_3classes_app/C2_Test.txt'
-        # Ouvrir le fichier en mode écriture
-        with open(file_name, 'w') as file:
-            # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_test1, X_test2, X_test3):
-                # Écrire les éléments avec une séparation de trois espaces entre eux
-                file.write(f"{a}   {b}   {c}\n")
-
-        labels = np.zeros(len(PixelCountStreetHigh))
-        X_train1, X_test1, y_train1, y_test1 = train_test_split(PixelCountStreetHigh, labels, test_size=0.3, random_state=42)
-        X_train2, X_test2, y_train2, y_test2 = train_test_split(sumBStreet, labels, test_size=0.3, random_state=42)
-        X_train3, X_test3, y_train3, y_test3 = train_test_split(thirdDimStreet, labels, test_size=0.3, random_state=42)
         file_name = 'data/data_3classes_app/C3.txt'
-
         # Ouvrir le fichier en mode écriture
         with open(file_name, 'w') as file:
             # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_train1, X_train2, X_train3):
-                # Écrire les éléments avec une séparation de trois espaces entre eux
-                file.write(f"{a}   {b}   {c}\n")
-
-        file_name = 'data/data_3classes_app/C3_Test.txt'
-        # Ouvrir le fichier en mode écriture
-        with open(file_name, 'w') as file:
-            # Parcourir les trois tableaux simultanément
-            for a, b, c in zip(X_test1, X_test2, X_test3):
+            for a, b, c in zip(dataUnCorrelated[len(PixelCountCoastHigh) + len(PixelCountForestHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh) + len(PixelCountStreetHigh),0], dataUnCorrelated[len(PixelCountCoastHigh) + len(PixelCountForestHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh) + len(PixelCountStreetHigh),1], dataUnCorrelated[len(PixelCountCoastHigh) + len(PixelCountForestHigh):len(PixelCountCoastHigh) + len(PixelCountForestHigh) + len(PixelCountStreetHigh),2]):
                 # Écrire les éléments avec une séparation de trois espaces entre eux
                 file.write(f"{a}   {b}   {c}\n")
     # Testing some classifiers

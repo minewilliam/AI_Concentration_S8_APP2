@@ -119,7 +119,7 @@ def calcModeleGaussien(data, message=''):
     return moyenne, matr_cov, val_propres, vect_propres
 
 
-def creer_hist2D(data, title='', nbinx=15, nbiny=15, view=False):
+def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
     """
     Crée une densité de probabilité pour une classe 2D au moyen d'un histogramme
     data: liste des points de la classe, 1 point par ligne (dimension 0)
@@ -142,9 +142,9 @@ def creer_hist2D(data, title='', nbinx=15, nbiny=15, view=False):
     xedges = [min_x]  # Premier bord correspond au minimum de la dimension x
     yedges = [min_y]  # Premier bord correspond au minimum de la dimension y
     #pas des bins de l'histogramme
-    for i in range(0,nbinx):
+    for i in range(1,nbinx):
         xedges.append(min_x + i * deltax)
-    for i in range(0,nbiny):
+    for i in range(1,nbiny):
         yedges.append(min_y + i * deltay)
     hist, _, _ = np.histogram2d(x, y, bins=[xedges, yedges])
     histsum = np.sum(hist)

@@ -38,7 +38,7 @@ class ImageCollection:
 
     def __init__(self, load_all=False):
         # liste de toutes les images
-        self.image_folder = r"data" + os.sep + "baseDeDonneesImagesTest"
+        self.image_folder = r"data" + os.sep + "baseDeDonneesImages"
         self._path = glob.glob(self.image_folder + os.sep + r"*.jpg")
         image_list = os.listdir(self.image_folder)
         # Filtrer pour juste garder les images
