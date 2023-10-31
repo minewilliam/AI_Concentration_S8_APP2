@@ -34,7 +34,7 @@ def problematique_APP2():
                                           loss='categorical_crossentropy',
                                           metrics=['accuracy'],
                                           callback_list=[
-                                              K.callbacks.EarlyStopping(patience=50, verbose=1, restore_best_weights=1),
+                                              K.callbacks.EarlyStopping(patience=100, verbose=1, restore_best_weights=1),
                                               classifiers.print_every_N_epochs(25)],
                                           # TODO à compléter L2.E4
                                           experiment_title='NN Simple',
@@ -67,6 +67,7 @@ def problematique_APP2():
                                              experiment_title='probabilités échantillonage',
                                              gen_output=True, view=True)
     plt.show()
+    plt.waitforbuttonpress()
 
 
 ######################################

@@ -8,7 +8,7 @@ import helpers.analysis as an
 
 
 if __name__ == '__main__':
-    image_collection = ImageCollection()
+    image_collection = ImageCollection(load_all=True)
     edge_coef = -0.5
     k1 = np.array([[edge_coef, 1, edge_coef],
                    [edge_coef, 1, edge_coef],
@@ -305,8 +305,7 @@ if __name__ == '__main__':
         print(StreetMeanHigh)
     # creates .txt files that will be use by the ClassificationDataObject
     if True:
-        images_indexes = [i for i in range(980)]
-        images = image_collection.load_images(images_indexes)
+        images = image_collection.load_images(np.indices([980])[0])
         sumBCoast = []
         sumBForest = []
         sumBStreet = []
@@ -315,56 +314,29 @@ if __name__ == '__main__':
         PixelCountStreetHigh = []
         count = 0
         for r, image in enumerate(images):
+            # Shapens edges:
             image_filtered = cv2.bilateralFilter(image, 18, 75, 75)
-            imageLab = image_filtered
-            vert_filter = cv2.filter2D(src=imageLab, ddepth=-1, kernel=k1)
-            horiz_filter = cv2.filter2D(src=imageLab, ddepth=-1, kernel=k2)
-            back_diag_filter = cv2.filter2D(src=imageLab, ddepth=-1, kernel=k3)
-            forward_diag_filter = cv2.filter2D(src=imageLab, ddepth=-1, kernel=k4)
-            vert_filter1 = cv2.filter2D(src=image, ddepth=-1, kernel=k1)
-            horiz_filter1 = cv2.filter2D(src=image, ddepth=-1, kernel=k2)
-            back_diag_filter1 = cv2.filter2D(src=image, ddepth=-1, kernel=k3)
-            forward_diag_filter1 = cv2.filter2D(src=image, ddepth=-1, kernel=k4)
+            # Filter outputs are monochrome (sum of R+G+B):
+            vert_filter = np.sum(cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k1), axis=2)
+            horiz_filter = np.sum(cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k2), axis=2)
+            back_diag_filter = np.sum(cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k3), axis=2)
+            forward_diag_filter = np.sum(cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k4), axis=2)
             pixelCountHigh = 0
-            sumB = []
-            for i in range(0, 255):
-                for j in range(0, 255):
-                    if i >= 85 and i < 170 and np.sum(back_diag_filter[i][j]) < 5 and np.sum(
-                            forward_diag_filter[i][j]) < 5 and np.sum(
-                            vert_filter[i][j]) < 5 and np.sum(back_diag_filter[i][j]) < 5:
-                        if "coast" in image_collection.image_list[r]:
-                            pixelCountHigh = pixelCountHigh + 1
-                        if "forest" in image_collection.image_list[r]:
-                            pixelCountHigh = pixelCountHigh + 1
-                        if "street" in image_collection.image_list[r]:
-                            pixelCountHigh = pixelCountHigh + 1
-                    if np.sum(vert_filter1[i][j]) == 0 and np.sum(back_diag_filter1[i][j]) == 0 and np.sum(
-                            horiz_filter1[i][j]) == 0 and np.sum(vert_filter1[i][j]) == 0:
-                        if "coast" in image_collection.image_list[r]:
-                            sumB.append(image[i][j][2])
-                        if "forest" in image_collection.image_list[r]:
-                            sumB.append(image[i][j][2])
-                        if "street" in image_collection.image_list[r]:
-                            sumB.append(image[i][j][2])
-            vert_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k1)
-            horiz_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k2)
-            back_diag_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k3)
-            forward_diag_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k4)
+            filter_sum = np.sum([vert_filter, horiz_filter, back_diag_filter, forward_diag_filter], axis=0)
+            zero_mask = (filter_sum == 0).astype('uint32')
+            mean = np.sum(zero_mask * image[:,:,2]) / np.sum(zero_mask)
+            filters = np.array([vert_filter, horiz_filter, forward_diag_filter, back_diag_filter])
+            p = np.sum(np.max(filters[:,85:170], axis=0) < 5)
             if "coast" in image_collection.image_list[r]:
                 PixelCountCoastHigh.append(pixelCountHigh)
-            if "forest" in image_collection.image_list[r]:
-                PixelCountForestHigh.append(pixelCountHigh)
-            if "street" in image_collection.image_list[r]:
-                PixelCountStreetHigh.append(pixelCountHigh)
-            mean = np.mean(sumB)
-            if "coast" in image_collection.image_list[r]:
                 sumBCoast.append(mean)
-            if "forest" in image_collection.image_list[r]:
+            elif "forest" in image_collection.image_list[r]:
+                PixelCountForestHigh.append(pixelCountHigh)
                 sumBForest.append(mean)
-            if "street" in image_collection.image_list[r]:
+            elif "street" in image_collection.image_list[r]:
+                PixelCountStreetHigh.append(pixelCountHigh)
                 sumBStreet.append(mean)
-
-            count = count + 1
+            count += 1
             print(count)
         # Create a plot
         thirdDimCoast, thirdDimForest, thirdDimStreet = image_collection.histAvgRegionGenHSV()
@@ -409,6 +381,7 @@ if __name__ == '__main__':
 
         # Show the plot
         plt.show()
+        plt.waitforbuttonpress()
 
         file_name = 'data/data_3classes_app/C1.txt'
         # Ouvrir le fichier en mode écriture

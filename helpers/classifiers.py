@@ -471,6 +471,7 @@ class NNClassify_APP2:
                                    outputActivation=outputActivation, gen_output=gen_output,
                                    optimizer=optimizer, loss=loss, metrics=metrics)
         self.classifier.train_model(n_epochs, callback_list=callback_list, batch_size= 50, savename=savename, view=view)
+        plt.show()
         self.donneesTestRandom = an.genDonneesTest(ndonnees_random, data2train.extent)
         self.predictRandom, _ = self.classifier.predict(testdata1array=self.donneesTestRandom)
         self.predictTest, self.error_indexes = self.classifier.predict(testdata1array=data2test.data1arrayTest,
