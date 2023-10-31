@@ -4,6 +4,7 @@ import cv2
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
+import helpers.analysis as an
 
 if __name__ == '__main__':
     image_collection = ImageCollection()
@@ -399,6 +400,9 @@ if __name__ == '__main__':
         eig_vals, eig_vectors = np.linalg.eig(mat_cov)
 
         dataUnCorrelated = dataCorrelated @ eig_vectors
+        dataUnCorrelated[:,0] = an.scaleData(dataUnCorrelated[:,0])[0]
+        dataUnCorrelated[:,1] = an.scaleData(dataUnCorrelated[:,1])[0]
+        dataUnCorrelated[:,2] = an.scaleData(dataUnCorrelated[:,2])[0]
         # Add labels and legend
 
         ax.set_xlabel('X Axis')
