@@ -326,7 +326,7 @@ if __name__ == '__main__':
             zero_mask = (filter_sum == 0).astype('uint32')
             mean = np.sum(zero_mask * image[:,:,2]) / np.sum(zero_mask)
             filters = np.array([vert_filter, horiz_filter, forward_diag_filter, back_diag_filter])
-            p = np.sum(np.max(filters[:,85:170], axis=0) < 5)
+            pixelCountHigh = np.sum(np.max(filters[:,85:170], axis=0) < 5)
             if "coast" in image_collection.image_list[r]:
                 PixelCountCoastHigh.append(pixelCountHigh)
                 sumBCoast.append(mean)
