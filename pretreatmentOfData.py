@@ -347,10 +347,10 @@ if __name__ == '__main__':
         ax.scatter(PixelCountCoastHigh, sumBCoast, thirdDimCoast, label='Coast', color='blue')
 
         # Plot the second set of data (x2, y2) with a red line
-        ax.scatter(PixelCountForestHigh, sumBForest, thirdDimForest, label='Forest', color='red')
+        ax.scatter(PixelCountForestHigh, sumBForest, thirdDimForest, label='Forest', color='green')
 
         # Plot the third set of data (x3, y3) with a green line
-        ax.scatter(PixelCountStreetHigh, sumBStreet, thirdDimStreet, label='Street', color='green')
+        ax.scatter(PixelCountStreetHigh, sumBStreet, thirdDimStreet, label='Street', color='red')
 
         dataCorrelated = np.array(np.zeros((980,3)))
         for i in range(0,len(PixelCountCoastHigh)):
@@ -375,9 +375,9 @@ if __name__ == '__main__':
         dataUnCorrelated[:,2] = an.scaleData(dataUnCorrelated[:,2])[0]
         # Add labels and legend
 
-        ax.set_xlabel('X Axis')
-        ax.set_ylabel('Y Axis')
-        ax.set_zlabel('Z Axis')
+        ax.set_xlabel('Pixel Count High')
+        ax.set_ylabel('Sum Blue (removed edges)')
+        ax.set_zlabel('Saturation')
 
         # Show the plot
         plt.show()
