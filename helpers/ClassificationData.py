@@ -151,7 +151,7 @@ class ClassificationData:
             self.labelsListsTest.append(self.label1arrayTest[range(i * len(self.dataListsTest[i]), (i + 1) * len(self.dataListsTest[i]))])
 
         # Min et max des données
-        self.extent = an.Extent(ptList=self.data1array)
+        self.extent = an.Extent()
         self.extentVal = an.Extent(ptList=self.data1arrayValidation)
         self.extentTest = an.Extent(ptList=self.data1arrayTest)
 
