@@ -53,7 +53,7 @@ class Extent:
         get_array: retourne les min max formattés en array
         get_corners: retourne les coordonnées des points aux coins d'un range couvert par les min max
     """
-    def __init__(self, xmin=0, xmax=10, ymin=0, ymax=10,zmin=0, zmax=10, ptList=None):
+    def __init__(self, xmin=0, xmax=1, ymin=0, ymax=1,zmin=0, zmax=1, ptList=None):
         """
         Constructeur
         2 options:

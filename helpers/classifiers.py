@@ -169,18 +169,11 @@ class BayesClassifier:
         classProbDensities = []
         # calcule la valeur de la probabilité d'appartenance à chaque classe pour les données à tester
         for i in range(self.n_classes):  # itère sur toutes les classes
-            classProbDensities.append(self.densities[i].computeProbability(testdata1array) * float(self.apriori[i]))
+            classProbDensities.append(self.densities[i].computeProbability(testdata1array))
         # reshape pour que les lignes soient les calculs pour 1 point original, i.e. même disposition que l'array d'entrée
         classProbDensities = np.array(classProbDensities).T
-        classProbDensities = np.squeeze(classProbDensities)
-        risques = []
-        for row in classProbDensities:
-            R1 = row[1] * self.costs[0][1] + row[2]* self.costs[0][2]
-            R2 = row[0] * self.costs[1][0] + row[2]* self.costs[1][2]
-            R3 = row[0] * self.costs[2][0] + row[1]* self.costs[2][1]
-            risques.append([R1,R2,R3])
-        # TODO problematique: take apriori and cost finto consideration! here for risk computation argmax assumes equal costs and apriori
-        predictions = np.argmin(risques, axis=1).reshape(testDataNSamples, 1)
+        # TODO problematique: take apriori and cost into consideration! here for risk computation argmax assumes equal costs and apriori
+        predictions = np.argmax(classProbDensities[0], axis=1).reshape(testDataNSamples, 1)
         if np.asarray(expected_labels1array).any():
             errors_indexes = an.calc_erreur_classification(expected_labels1array, predictions, gen_output)
         else:
