@@ -39,46 +39,6 @@ class ClassificationData:
             self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C2.txt'))
             self.dataLists.append(np.loadtxt('data'+os.sep+'data_3classes_app'+os.sep+'C3.txt'))
 
-        histo = classifiers.histProbDensity(self.dataLists[1])
-        x_size, y_size, z_size = histo.hist.shape
-
-        nombre_de_points = len(self.dataLists[0]) - len(self.dataLists[1])
-        points_aleatoires = []
-        while len(points_aleatoires) < nombre_de_points:
-
-            index = np.unravel_index(np.random.choice(x_size * y_size * z_size, p=histo.hist.flatten()),
-                                     (x_size, y_size, z_size))
-
-            x = np.random.uniform(index[0] / x_size, (index[0] + 1) / x_size)  # Normalisation entre 0 et 1
-            y = np.random.uniform(index[1] / y_size, (index[1] + 1) / y_size)  # Normalisation entre 0 et 1
-            z = np.random.uniform(index[2] / z_size, (index[2] + 1) / z_size)
-
-            if np.random.uniform(0, 1) < histo.hist[tuple(index)]:
-                points_aleatoires.append([x, y, z])
-        points_generated_array = np.array(points_aleatoires)
-
-        self.dataLists[1] = np.concatenate((self.dataLists[1], points_generated_array))
-
-        histo = classifiers.histProbDensity(self.dataLists[2])
-        x_size, y_size, z_size = histo.hist.shape
-
-        nombre_de_points = len(self.dataLists[0]) - len(self.dataLists[2])
-        points_aleatoires = []
-        while len(points_aleatoires) < nombre_de_points:
-
-            index = np.unravel_index(np.random.choice(x_size * y_size * z_size, p=histo.hist.flatten()),
-                                     (x_size, y_size, z_size))
-
-            x = np.random.uniform(index[0] / x_size, (index[0] + 1) / x_size)  # Normalisation entre 0 et 1
-            y = np.random.uniform(index[1] / y_size, (index[1] + 1) / y_size)  # Normalisation entre 0 et 1
-            z = np.random.uniform(index[2] / z_size, (index[2] + 1) / z_size)
-
-            if np.random.uniform(0, 1) < histo.hist[tuple(index)]:
-                points_aleatoires.append([x, y, z])
-        points_generated_array = np.array(points_aleatoires)
-
-        self.dataLists[2] = np.concatenate((self.dataLists[2], points_generated_array))
-
         #instanciate the shape of the data lists for validation and tests
         self.dataListValidation = self.dataLists
         self.dataListsTest = self.dataLists
