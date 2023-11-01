@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import helpers.analysis as an
 
+
 if __name__ == '__main__':
     image_collection = ImageCollection()
     edge_coef = -0.5
@@ -28,21 +29,18 @@ if __name__ == '__main__':
         images_indexes = image_collection.get_samples(N_samples)
         images = image_collection.load_images(images_indexes)
         for i, image in enumerate(images):
-            image_normalized = normalize_hist_rgb(image)
-            imageHSV = skic.rgb2hsv(image)
-            image_filtered = imageHSV
-            vert_filter = cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k1)
-            horiz_filter = cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k2)
-            back_diag_filter = cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k3)
-            forward_diag_filter = cv2.filter2D(src=image_filtered, ddepth=-1, kernel=k4)
+            vert_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k1)
+            horiz_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k2)
+            back_diag_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k3)
+            forward_diag_filter = cv2.filter2D(src=image, ddepth=-1, kernel=k4)
+            image_filtered = cv2.bilateralFilter(image, 9, 75, 75)
             res = np.hstack((image, image_filtered, horiz_filter, back_diag_filter, forward_diag_filter))
             cv2.imshow("original", res)
             cv2.waitKey()
             cv2.destroyAllWindows()
     #Checks if an average over RGB channels is better depending on the filtering of specific edges
     if False:
-        images = image_collection.load_images(619)
-        images_indexes = [i for i in range(620)]
+        images_indexes = [i for i in range(980)]
         images = image_collection.load_images(images_indexes)
         sumRCoast = []
         sumGCoast = []
@@ -255,7 +253,7 @@ if __name__ == '__main__':
         # images = image_collection.load_images(619)
         N_samples = 5
         # images_indexes = image_collection.get_samples(N_samples)
-        images_indexes = [i for i in range(126)]
+        images_indexes = [i for i in range(980)]
         images = image_collection.load_images(images_indexes)
         for r, image in enumerate(images):
             image_filtered = cv2.bilateralFilter(image, 18, 75, 75)

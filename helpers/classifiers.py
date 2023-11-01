@@ -106,22 +106,22 @@ class histProbDensity:
     def __init__(self, data2train, title='', view=False):
         _, self.representationDimensions = np.asarray(data2train).shape
         # TODO problématique: modifier la modélisation pour fonctionner avec une dimensionalité plus élevée
-        self.hist, self.xedges, self.yedges = an.creer_hist2D(data2train, title=title, view=view)
+        self.hist, self.xedges, self.yedges, self.zedges = an.creer_hist2D(data2train, title=title, view=view)
 
     def computeProbability(self, testdata1array):
         testDataNSamples, testDataDimensions = np.asarray(testdata1array).shape
         assert testDataDimensions == self.representationDimensions
-        nb_lignes, nb_colonnes = self.hist.shape
         probabilities = np.zeros((testDataNSamples, 1))
         for row in range(0,len(testdata1array)):
             x_bin = np.searchsorted(self.xedges, testdata1array[row][0], side='right')-1
             y_bin = np.searchsorted(self.yedges, testdata1array[row][1], side='right')-1
+            z_bin = np.searchsorted(self.zedges, testdata1array[row][2], side='right')-1
 
-            if x_bin == -1 or x_bin == 59 or y_bin ==-1 or y_bin == 59:
+            if x_bin == -1 or x_bin == 59 or y_bin ==-1 or y_bin == 59 or z_bin ==-1 or z_bin == 59 :
                 prob_point = 0
                 probabilities[row] += float(prob_point)
             else:
-                prob_point = self.hist[x_bin, y_bin] / np.sum(self.hist)
+                prob_point = self.hist[x_bin, y_bin, z_bin] / np.sum(self.hist)
                 probabilities[row] += float(prob_point)
 
         return  probabilities
@@ -470,7 +470,7 @@ class NNClassify_APP2:
         self.classifier.init_model(n_neurons, n_layers, innerActivation=innerActivation,
                                    outputActivation=outputActivation, gen_output=gen_output,
                                    optimizer=optimizer, loss=loss, metrics=metrics)
-        self.classifier.train_model(n_epochs, callback_list=callback_list, savename=savename, view=view)
+        self.classifier.train_model(n_epochs, callback_list=callback_list, batch_size= 50, savename=savename, view=view)
         self.donneesTestRandom = an.genDonneesTest(ndonnees_random, data2train.extent)
         self.predictRandom, _ = self.classifier.predict(testdata1array=self.donneesTestRandom)
         self.predictTest, self.error_indexes = self.classifier.predict(testdata1array=data2test.data1arrayTest,

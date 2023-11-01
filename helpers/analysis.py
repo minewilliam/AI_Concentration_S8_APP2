@@ -119,7 +119,7 @@ def calcModeleGaussien(data, message=''):
     return moyenne, matr_cov, val_propres, vect_propres
 
 
-def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
+def creer_hist2D(data, title='', nbinx=60, nbiny=60, nbinz = 60,view=False):
     """
     Crée une densité de probabilité pour une classe 2D au moyen d'un histogramme
     data: liste des points de la classe, 1 point par ligne (dimension 0)
@@ -129,6 +129,7 @@ def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
 
     x = np.array(data[:, 0])
     y = np.array(data[:, 1])
+    z = np.array(data[:, 2])
 
     # TODO L2.E1.1 Faire du pseudocode et implémenter une segmentation en bins...
     ## ici on détermine les plages de valeur pour chaque dimension (min et max de chaque dimensions):
@@ -136,17 +137,23 @@ def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
     max_x = max(data[:, 0])
     min_y = min(data[:, 1])
     max_y = max(data[:, 1])
+    min_z = min(data[:, 2])
+    max_z = max(data[:, 2])
     #Par la suite on calcul la largeur de chaque bin pour x et y
     deltax  = (max_x - min_x) / nbinx
     deltay  = (max_y - min_y) / nbiny
+    deltaz  = (max_z - min_z) / nbinz
     xedges = [min_x]  # Premier bord correspond au minimum de la dimension x
     yedges = [min_y]  # Premier bord correspond au minimum de la dimension y
+    zedges = [min_z]  # Premier bord correspond au minimum de la dimension z
     #pas des bins de l'histogramme
     for i in range(1,nbinx):
         xedges.append(min_x + i * deltax)
     for i in range(1,nbiny):
         yedges.append(min_y + i * deltay)
-    hist, _, _ = np.histogram2d(x, y, bins=[xedges, yedges])
+    for i in range(1,nbinz):
+        zedges.append(min_z + i * deltaz)
+    hist, _= np.histogramdd((x,y,z), bins=[xedges, yedges, zedges])
     histsum = np.sum(hist)
     hist = hist / histsum
 
@@ -156,7 +163,7 @@ def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
     #histsum = np.sum(hist)
     #hist = hist / histsum
 
-    if view:
+    if False:
         fig = plt.figure()
         ax = plt.axes(projection='3d')
         ax.set_title(f'Densité de probabilité de {title}')
@@ -175,7 +182,7 @@ def creer_hist2D(data, title='', nbinx=60, nbiny=60, view=False):
 
         ax.bar3d(xpos.ravel(), ypos.ravel(), 0, deltax * .9, deltay * .9, dz, color=rgba)
 
-    return hist, xedges, yedges
+    return hist, xedges, yedges, zedges
 
 
 def descaleData(x, minmax):

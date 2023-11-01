@@ -25,12 +25,12 @@ def problematique_APP2():
 
     if True:
         # Exemple de RN
-        n_neurons = 25
-        n_layers = 15
+        n_neurons = 15
+        n_layers = 4
 
         nn1 = classifiers.NNClassify_APP2(data2train=data3classes, data2test=data3classes,
                                           n_layers=n_layers, n_neurons=n_neurons, innerActivation='relu',
-                                          outputActivation='softmax', optimizer=SGD(learning_rate=0.01),
+                                          outputActivation='softmax', optimizer=SGD(learning_rate=0.001, momentum= 0.65),
                                           loss='categorical_crossentropy',
                                           metrics=['accuracy'],
                                           callback_list=[
@@ -38,14 +38,14 @@ def problematique_APP2():
                                               classifiers.print_every_N_epochs(25)],
                                           # TODO à compléter L2.E4
                                           experiment_title='NN Simple',
-                                          n_epochs=4000, savename='3classes',
+                                          n_epochs=10000, savename='3classes',
                                           ndonnees_random=5000, gen_output=True, view=True)
 
     if True:  # TODO L3.E2
         ## Exemples de ppv avec ou sans k-moy
         ## 1-PPV avec comme représentants de classes l'ensemble des points déjà classés
         ppv5 = classifiers.PPVClassify_APP2(data2train=data3classes, data2test=data3classes, n_neighbors=1,
-                                            experiment_title='5-PPV avec données orig comme représentants',
+                                            experiment_title='1-PPV avec données orig comme représentants',
                                             gen_output=True, view=True)
         # 1-mean sur chacune des classes
         # suivi d'un 1-PPV avec ces nouveaux représentants de classes
@@ -64,7 +64,7 @@ def problematique_APP2():
         # Bayes gaussien les apriori et coûts ne sont pas considérés pour l'instant
         bg1 = classifiers.BayesClassify_APP2(data2train=data3classes, data2test=data3classes,
                                              apriori=apriori, costs=cost,
-                                             experiment_title='probabilités gaussiennes',
+                                             experiment_title='probabilités échantillonage',
                                              gen_output=True, view=True)
     plt.show()
 
