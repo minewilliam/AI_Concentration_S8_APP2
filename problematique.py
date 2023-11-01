@@ -26,11 +26,11 @@ def problematique_APP2():
     if True:
         # Exemple de RN
         n_neurons = 15
-        n_layers = 4
+        n_layers = 3
 
         nn1 = classifiers.NNClassify_APP2(data2train=data3classes, data2test=data3classes,
                                           n_layers=n_layers, n_neurons=n_neurons, innerActivation='relu',
-                                          outputActivation='softmax', optimizer=SGD(learning_rate=0.001, momentum= 0.65),
+                                          outputActivation='softmax', optimizer=SGD(learning_rate=0.03),
                                           loss='categorical_crossentropy',
                                           metrics=['accuracy'],
                                           callback_list=[
